@@ -34,6 +34,7 @@ pushd "${INSTALLER_DIR}"
   fi
 
 
+  mkdir -p ./bin
   echo "downloading ${RELEASE} release..."
 
   set -e
