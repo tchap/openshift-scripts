@@ -13,7 +13,7 @@ The cluster creation flow requires several credentials from different systems. A
 
 | Credential | Where to get it | What it's used for | Lifetime |
 |---|---|---|---|
-| **AWS permanent credentials** (access key ID + secret key) | [AWS account setup](https://source.redhat.com/groups/public/openshift/openshift_wiki/openshift_dev_amazon_web_services_aws), configured in `~/.aws/credentials` | Provisioning and destroying AWS infrastructure (EC2, VPC, Route53, etc.). The installer does not work with temporary SAML/SSO credentials. | Permanent (until rotated) |
+| **AWS permanent credentials** (access key ID + secret key) | [AWS account setup](https://source.redhat.com/groups/public/openshift/openshift_wiki/openshift_dev_amazon_web_services_aws). Create an IAM access key in the AWS console (IAM > Users > Security credentials > Create access key), then run `aws configure --profile <profile-name>` to save it to `~/.aws/credentials`. | Provisioning and destroying AWS infrastructure (EC2, VPC, Route53, etc.). The installer does not work with temporary SAML/SSO credentials. | Permanent (until rotated) |
 | **Red Hat pull secret** | [console.redhat.com](https://console.redhat.com/openshift/install/pull-secret) | Pulling OpenShift container images during cluster installation. Stored in `install-config.yaml` and `openshift-installer-pull-secret.txt`. | Permanent (until revoked) |
 | **CI registry OAuth token** | [OAuth token request page](https://oauth-openshift.apps.ci.l2s4.p1.openshiftapps.com/oauth/token/request) | Pulling pre-release images from `registry.ci.openshift.org` — needed by `installerupdate` (via `oc adm release extract`) and embedded in the pull secret for cluster installs from CI builds. | Expires periodically — refresh with `updateciregistrytoken` |
 
@@ -62,7 +62,7 @@ The CI registry token expires periodically. Run this whenever it does:
 updateciregistrytoken <token>
 ```
 
-Get the token from the [OAuth token request page](https://oauth-openshift.apps.ci.l2s4.p1.openshiftapps.com/oauth/token/request) (the script opens it automatically if you omit the argument).
+Get the token from the [OAuth token request page](https://oauth-openshift.apps.ci.l2s4.p1.openshiftapps.com/oauth/token/request) — log in with your GitHub account and copy the displayed token.
 
 This updates the pull secret in your install-config and logs you in to `registry.ci.openshift.org`.
 
