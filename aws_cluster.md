@@ -25,8 +25,9 @@ Add these to your `.bashrc`/`.zshrc` (adjust paths as needed):
 ```bash
 alias updateciregistrytoken='"${HOME}/projects/openshift-scripts/auth/update-ci-registry-token.sh"'
 alias installerupdate='INSTALLER_DIR="${HOME}/work/clusters/openshift-install" "${HOME}/projects/openshift-scripts/cluster/openshift/update-installer.sh"'
-alias createcluster='export KUBECONFIG=${HOME}/work/clusters/cluster0/auth/kubeconfig; cp ${HOME}/work/{conf/ocpcred/install-config.yaml,clusters/cluster0/}; AWS_PROFILE=<your-permanent-credentials-profile> openshift-install create cluster --dir ${HOME}/work/clusters/cluster0/ --log-level=debug; export KUBEADMIN_PASSWORD="$(cat ${HOME}/work/clusters/cluster0/auth/kubeadmin-password)"; DISABLE_CVO=false ${HOME}/projects/openshift-scripts/cluster/openshift/initialize-cluster.sh username-cluster0'
-alias destroycluster='AWS_PROFILE=<your-permanent-credentials-profile> openshift-install destroy cluster --dir ${HOME}/work/clusters/cluster0/ --log-level=debug; unset KUBECONFIG; unset KUBEADMIN_PASSWORD; ${HOME}/projects/openshift-scripts/cluster/openshift/clean-after-deleted-cluster.sh username'
+alias createinstallconfig='rm -f "${HOME}/work/conf/ocpcred/install-config.yaml"; "${HOME}/work/clusters/openshift-install/bin/openshift-install" create install-config --dir "${HOME}/work/conf/ocpcred"'
+alias createcluster='export KUBECONFIG=${HOME}/work/clusters/cluster0/auth/kubeconfig; cp ${HOME}/work/{conf/ocpcred/install-config.yaml,clusters/cluster0/}; AWS_PROFILE=<your-permanent-credentials-profile> ${HOME}/work/clusters/openshift-install/bin/openshift-install create cluster --dir ${HOME}/work/clusters/cluster0/ --log-level=debug; export KUBEADMIN_PASSWORD="$(cat ${HOME}/work/clusters/cluster0/auth/kubeadmin-password)"; DISABLE_CVO=false ${HOME}/projects/openshift-scripts/cluster/openshift/initialize-cluster.sh username-cluster0'
+alias destroycluster='export AWS_PROFILE=<your-permanent-credentials-profile>; ${HOME}/work/clusters/openshift-install/bin/openshift-install destroy cluster --dir ${HOME}/work/clusters/cluster0/ --log-level=debug; unset KUBECONFIG; unset KUBEADMIN_PASSWORD; ${HOME}/projects/openshift-scripts/cluster/openshift/clean-after-deleted-cluster.sh username'
 ```
 
 ## One-Time Setup
@@ -79,7 +80,7 @@ This updates the pull secret in your install-config and logs you in to `registry
 2. Generate an install config:
 
    ```bash
-   "$HOME/work/clusters/openshift-install/bin/openshift-install" create install-config --dir "$HOME/work/conf/ocpcred"
+   createinstallconfig
    ```
 
    The installer will prompt for your platform, region, cluster name, and pull secret.
