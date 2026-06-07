@@ -22,6 +22,7 @@ AUTH_INFO="${GITHUB_USER}:${API_TOKEN}"
 AUTH_INFO_BASE64="$(echo -n "${AUTH_INFO}" | base64 -w 0)"
 
 INSTALL_CONFIG="${INSTALL_CONFIG:-"${HOME}/work/conf/ocpcred/install-config.yaml"}"
+PULL_SECRET="${PULL_SECRET:-"${HOME}/work/conf/ocpcred/openshift-installer-pull-secret.txt"}"
 
 podman login "${REGISTRY_URL}" -u "${GITHUB_USER}" -p "${API_TOKEN}"
 
@@ -39,4 +40,15 @@ if [[ -f "${INSTALL_CONFIG}" ]]; then
   yq -i ".pullSecret = $(printf '%s' "${UPDATED_PS}" | jq -Rs .)" "${INSTALL_CONFIG}"
 
   echo "updated install config"
+fi
+
+if [[ -f "${PULL_SECRET}" ]]; then
+  cp "${PULL_SECRET}" "${PULL_SECRET}~"
+
+  UPDATED_PS="$(jq -c --arg auth "${AUTH_INFO_BASE64}" \
+    '.auths["registry.ci.openshift.org"] = {"auth": $auth}' "${PULL_SECRET}")"
+
+  echo "${UPDATED_PS}" > "${PULL_SECRET}"
+
+  echo "updated pull secret"
 fi
