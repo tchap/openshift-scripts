@@ -3,15 +3,9 @@
 set -e
 
 INSTALLER_DIR="${INSTALLER_DIR:-}"
-RELEASE_GRAPH_FILE="$(mktemp)"
-CHANNEL=${1:-4.22.0-0.ci} # 4.20.0-0.nightly
+CHANNEL=${1:-5.0.0-0.ci}
 DOWNGRADE="${DOWNGRADE:-0}"
-
-trap cleanup INT TERM EXIT
-
-function cleanup() {
-  rm -f "${RELEASE_GRAPH_FILE}"
-}
+RELEASE_CONTROLLER="https://amd64.ocp.releases.ci.openshift.org"
 
 function mvsafe() {
   if [[ -e "${1}" ]]; then
@@ -24,35 +18,12 @@ if [[ -z "${INSTALLER_DIR}" ]]; then
   exit 1
 fi
 
+RELEASE_JSON="$(curl -s "${RELEASE_CONTROLLER}/api/v1/releasestream/${CHANNEL}/latest?rel=${DOWNGRADE}")"
+RELEASE="$(echo "${RELEASE_JSON}" | jq -r '.name')"
+PULL_SPEC="$(echo "${RELEASE_JSON}" | jq -r '.pullSpec')"
 
-LATEST_RELEASES="$(curl -s 'https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/graph' | jq '.nodes[] | select(.version|test("'"${CHANNEL}"'"))| .version' | sort -r | sed 's/"//g')"
-
-curl -s 'https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/graph?format=dot' > "${RELEASE_GRAPH_FILE}"
-
-RELEASE=""
-
-set +e
-
-for release in ${LATEST_RELEASES}; do
-  FOUND_NON_REJECTED="$(grep ${release} "${RELEASE_GRAPH_FILE}" | grep -v "color=red")"
-  FOUND_SUCCESS="$(curl -s "https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/releasestream/${CHANNEL}/release/$release" | grep "oc adm release extract")"
-  if [[ -n "${FOUND_NON_REJECTED}" ]] && [[ -n "${FOUND_SUCCESS}" ]]; then
-    if [[ "${DOWNGRADE}" -eq 0 ]]; then
-      RELEASE="${release}"
-      break
-    else
-      DOWNGRADE_CURRENT="${DOWNGRADE}"
-      DOWNGRADE="$(( "${DOWNGRADE}" - 1 ))"
-    fi
-    echo "skipping $release (downgrade ${DOWNGRADE_CURRENT})"
-  else
-    echo "skipping $release"
-  fi
-done
-
-
-if [[ -z "${RELEASE}" ]]; then
-  echo "release not found: failed releases: ${LATEST_RELEASES}" >&2
+if [[ -z "${RELEASE}" ]] || [[ "${RELEASE}" == "null" ]]; then
+  echo "no accepted release found for channel ${CHANNEL}" >&2
   exit 1
 fi
 
@@ -66,7 +37,7 @@ pushd "${INSTALLER_DIR}"
   echo "downloading ${RELEASE} release..."
 
   set -e
-  oc adm release extract --tools "registry.ci.openshift.org/ocp/release:${RELEASE}"
+  oc adm release extract --tools "${PULL_SPEC}"
   set +e
 
   mvsafe ./bin/openshift-install openshift-install.bak
