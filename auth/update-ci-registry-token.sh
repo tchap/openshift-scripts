@@ -37,7 +37,9 @@ if [[ -f "${INSTALL_CONFIG}" ]]; then
   UPDATED_PS="$(echo "${CURRENT_PS}" | jq -c --arg auth "${AUTH_INFO_BASE64}" \
     '.auths["registry.ci.openshift.org"] = {"auth": $auth}')"
 
-  yq -i ".pullSecret = $(printf '%s' "${UPDATED_PS}" | jq -Rs .)" "${INSTALL_CONFIG}"
+  grep -v '^pullSecret:' "${INSTALL_CONFIG}" > "${INSTALL_CONFIG}.tmp"
+  echo "pullSecret: '${UPDATED_PS}'" >> "${INSTALL_CONFIG}.tmp"
+  mv "${INSTALL_CONFIG}.tmp" "${INSTALL_CONFIG}"
 
   echo "updated install config"
 fi
