@@ -5,7 +5,7 @@
 
 cluster_name=${1:-clustername}
 hosted_zone_dns_name=${2:-group-b.devcluster.openshift.com}
-profile=${3:-openshift-group-b}
+profile=${3:-${AWS_PROFILE:-openshift-group-b}}
 
 hosted_zone_id=$(
     aws route53 list-hosted-zones-by-name \
