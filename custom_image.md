@@ -19,18 +19,17 @@ git clone https://github.com/openshift/cluster-kube-controller-manager-operator.
 cd cluster-kube-controller-manager-operator
 ```
 
-Build the image. Most OpenShift operator repos provide a `make images` target via
-[build-machinery-go](https://github.com/openshift/build-machinery-go):
+Build the image with podman. The base images come from `registry.ci.openshift.org`,
+so pass `--authfile` pointing to your pull secret:
 
 ```bash
-make images IMAGE_BUILD_BUILDER=podman
+podman build --authfile ~/work/conf/ocpcred/auth.json \
+  -t cluster-kube-controller-manager-operator:latest -f Dockerfile.rhel7 .
 ```
 
-Alternatively, build directly with podman:
-
-```bash
-podman build -t cluster-kube-controller-manager-operator:latest -f Dockerfile.rhel .
-```
+> **Note:** `make images IMAGE_BUILD_BUILDER=podman` does not work — the
+> build-machinery-go macro passes `--allow-pull` (an imagebuilder-specific flag)
+> and omits the `build` subcommand that podman requires.
 
 Tag and push to your Quay repository:
 
