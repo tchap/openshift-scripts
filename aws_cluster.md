@@ -67,6 +67,14 @@ Get the token from the [OAuth token request page](https://oauth-openshift.apps.c
 
 This updates the pull secret in your install-config and logs you in to `registry.ci.openshift.org`.
 
+This currently somehow may now work. An alternative way is to log into `app.ci` cluster manually and then log in using `podman`.
+You will need to do this in case the following `installerupdate` invocation fails:
+
+```bash
+$ oc login --server=https://api.ci.l2s4.p1.openshiftapps.com:6443 --web
+$ podman login -u=$(oc --context app.ci whoami) -p=$(oc --context app.ci whoami -t) quay-proxy.ci.openshift.org
+```
+
 ## Create a Cluster
 
 1. Download the latest accepted installer:
