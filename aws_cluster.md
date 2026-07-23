@@ -104,6 +104,7 @@ $ podman login -u=$(oc --context app.ci whoami) -p=$(oc --context app.ci whoami 
    This copies your install-config, runs the installer (~40 minutes), sets `KUBECONFIG` and `KUBEADMIN_PASSWORD`, then runs `initialize-cluster.sh` which:
    - Creates a `test` project
    - Optionally disables CVO (controlled by `DISABLE_CVO`, defaults to `false`)
+     (Can be later achieved by running `oc scale --replicas 0 -n openshift-cluster-version deployments/cluster-version-operator`)
    - Updates your local CA trust store (Arch Linux only)
    - Logs you in to the cluster's image registry
 
